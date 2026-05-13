@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisionAI Studio — توليد فيديو بالذكاء الاصطناعي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --purple:#6320ff;
+    --cyan:#00d4ff;
+    --pink:#ff2080;
+    --bg:#020408;
+    --card:rgba(255,255,255,0.03);
+    --border:rgba(255,255,255,0.07);
+    --text:rgba(255,255,255,0.85);
+    --muted:rgba(255,255,255,0.4);
+  }
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Outfit','Cairo',system-ui,sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-thumb{background:rgba(99,32,255,0.4);border-radius:2px}
+
+  /* Background */
+  .bg-glow{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%,rgba(99,32,255,0.25) 0%,transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 80%,rgba(0,212,255,0.12) 0%,transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 90%,rgba(255,32,128,0.1) 0%,transparent 60%);
+  }
+  .bg-grid{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(99,32,255,0.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(99,32,255,0.04) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+  .particle{
+    position:fixed;border-radius:50%;pointer-events:none;z-index:0;
+    animation:float var(--dur,6s) var(--delay,0s) infinite ease-in-out;
+  }
+  @keyframes float{0%,100%{transform:translateY(0) scale(1);opacity:.4}50%{transform:translateY(-20px) scale(1.3);opacity:.8}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @keyframes scan{0%{top:0%}100%{top:100%}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes progressGlow{0%,100%{box-shadow:0 0 10px rgba(99,32,255,0.5)}50%{box-shadow:0 0 25px rgba(0,212,255,0.8)}}
+
+  .content{position:relative;z-index:1}
+
+  /* NAV */
+  nav{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding:14px 28px;
+    border-bottom:1px solid rgba(99,32,255,0.2);
+    background:rgba(2,4,8,0.85);
+    backdrop-filter:blur(20px);
+    position:sticky;top:0;z-index:100;
+  }
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-icon{
+    width:40px;height:40px;border-radius:10px;
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;box-shadow:0 0 20px rgba(99,32,255,0.5);
+  }
+  .logo-name{
+    font-size:17px;font-weight:900;letter-spacing:.15em;
+    background:linear-gradient(90deg,#a78bfa,var(--cyan));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .logo-sub{font-size:10px;color:var(--muted);letter-spacing:.08em}
+  .lang-bar{display:flex;gap:6px;flex-wrap:wrap}
+  .lang-btn{
+    padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);
+    background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;
+    transition:all .2s;font-family:inherit;
+  }
+  .lang-btn.active,.lang-btn:hover{
+    border-color:rgba(99,32,255,0.8);background:rgba(99,32,255,0.25);color:#a78bfa;
+  }
+
+  /* HERO */
+  .hero{text-align:center;padding:56px 24px 40px}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 18px;border-radius:20px;
+    border:1px solid rgba(99,32,255,0.4);background:rgba(99,32,255,0.1);
+    font-size:11px;color:#a78bfa;letter-spacing:.12em;margin-bottom:18px;
+  }
+  .spinning{display:inline-block;animation:spin 3s linear infinite}
+  .hero-title{
+    font-size:clamp(32px,6vw,68px);font-weight:900;line-height:1.1;
+    background:linear-gradient(135deg,#fff 0%,#a78bfa 50%,var(--cyan) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:14px;letter-spacing:-.02em;
+  }
+  .hero-sub{font-size:15px;color:var(--muted);margin-bottom:28px;letter-spacing:.04em}
+  .feat-badges{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+  .feat-badge{
+    padding:7px 18px;border-radius:30px;
+    border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);
+    font-size:12px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:6px;
+  }
+  .feat-badge span{color:#a78bfa}
+
+  /* TABS */
+  .tabs{display:flex;justify-content:center;gap:6px;padding:0 24px 20px}
+  .tab-btn{
+    padding:10px 28px;border-radius:30px;border:none;cursor:pointer;
+    font-size:14px;font-weight:700;transition:all .3s;font-family:inherit;
+    background:rgba(255,255,255,0.05);color:var(--muted);
+  }
+  .tab-btn.active{
+    background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;
+    box-shadow:0 0 20px rgba(99,32,255,0.3);
+  }
+
+  /* MAIN */
+  main{max-width:900px;margin:0 auto;padding:0 20px 80px}
+
+  /* CARD */
+  .card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:18px;padding:24px;margin-bottom:16px;
+    backdrop-filter:blur(10px);
+  }
+  .card-label{
+    font-size:11px;font-weight:800;color:#a78bfa;
+    margin-bottom:10px;letter-spacing:.12em;display:block;
+  }
+  textarea,input[type=text]{
+    width:100%;background:rgba(255,255,255,0.04);
+    border:1px solid rgba(99,32,255,0.3);border-radius:12px;
+    padding:14px 16px;color:var(--text);font-size:14px;
+    resize:vertical;outline:none;font-family:inherit;line-height:1.6;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  textarea:focus,input:focus{
+    border-color:rgba(99,32,255,0.7);
+    box-shadow:0 0 0 3px rgba(99,32,255,0.1);
+  }
+  textarea::placeholder,input::placeholder{color:var(--muted)}
+
+  .opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .opt-grid-sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:7px}
+  .opt-btn{
+    padding:9px 12px;border-radius:10px;text-align:center;cursor:pointer;
+    border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);
+    color:rgba(255,255,255,0.55);font-size:12px;font-weight:600;
+    transition:all .2s;font-family:inherit;
+  }
+  .opt-btn.active{
+    border-color:rgba(99,32,255,0.8);background:rgba(99,32,255,0.2);color:#a78bfa;
+  }
+  .opt-btn:hover{border-color:rgba(99,32,255,0.5);background:rgba(99,32,255,0.1);color:#c4b5fd}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .col-opts{display:flex;flex-direction:column;gap:6px}
+
+  /* Advanced toggle */
+  .adv-toggle{
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;padding:4px 0;user-select:none;
+  }
+  .adv-toggle:hover .card-label{color:#c4b5fd}
+  .adv-body{margin-top:18px;display:none}
+  .adv-body.open{display:block}
+  .section-sub{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.08em}
+
+  /* GEN BUTTON */
+  .gen-btn{
+    width:100%;padding:18px;border-radius:14px;border:none;
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    color:#fff;font-size:17px;font-weight:900;letter-spacing:.08em;
+    cursor:pointer;transition:all .3s;font-family:inherit;margin-top:16px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 0 30px rgba(99,32,255,0.35);
+  }
+  .gen-btn:hover{transform:translateY(-2px);filter:brightness(1.1);box-shadow:0 0 45px rgba(99,32,255,0.5)}
+  .gen-btn:disabled{background:rgba(255,255,255,0.06);color:var(--muted);cursor:not-allowed;box-shadow:none;transform:none}
+
+  /* PROGRESS */
+  .progress-card{
+    background:rgba(99,32,255,0.05);border:1px solid rgba(99,32,255,0.3);
+    border-radius:18px;padding:28px;margin-bottom:16px;text-align:center;
+    animation:slideUp .4s ease;display:none;
+  }
+  .progress-card.show{display:block}
+  .progress-pct{font-size:48px;font-weight:900;background:linear-gradient(90deg,#a78bfa,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .progress-bar{
+    width:100%;height:6px;background:rgba(255,255,255,0.08);
+    border-radius:10px;overflow:hidden;margin:16px 0 10px;
+  }
+  .progress-fill{
+    height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));
+    border-radius:10px;width:0%;transition:width .8s ease;
+    animation:progressGlow 2s infinite;
+  }
+  .progress-step{font-size:13px;color:var(--muted)}
+  .step-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all .4s}
+  .step-dot.done{background:linear-gradient(135deg,var(--purple),var(--cyan))}
+
+  /* RESULT */
+  .result-card{
+    background:rgba(99,32,255,0.06);border:1px solid rgba(99,32,255,0.35);
+    border-radius:18px;padding:24px;margin-bottom:16px;
+    animation:slideUp .4s ease;display:none;
+  }
+  .result-card.show{display:block}
+  .result-label{font-size:12px;color:#a78bfa;letter-spacing:.1em;margin-bottom:4px}
+  .result-msg{font-size:14px;color:var(--muted);margin-bottom:18px}
+  .video-preview{
+    width:100%;aspect-ratio:16/9;border-radius:12px;
+    overflow:hidden;margin-bottom:16px;position:relative;cursor:pointer;
+  }
+  .video-bg{
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .scan-line{
+    position:absolute;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,rgba(0,212,255,0.6),transparent);
+    animation:scan 3s linear infinite;
+  }
+  .play-icon{font-size:52px;filter:drop-shadow(0 0 20px rgba(0,212,255,0.9));position:relative;z-index:1}
+  .video-tag{position:absolute;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700}
+  .video-tag.tl{top:10px;left:10px;background:rgba(99,32,255,0.85)}
+  .video-tag.br{bottom:10px;right:10px;background:rgba(0,0,0,0.65)}
+  .action-row{display:flex;gap:10px;flex-wrap:wrap}
+  .action-btn{
+    flex:1;min-width:110px;padding:11px 18px;border-radius:10px;
+    font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .action-btn.primary{
+    background:linear-gradient(135deg,var(--purple),var(--cyan));
+    color:#fff;border:none;box-shadow:0 0 20px rgba(99,32,255,0.3);
+  }
+  .action-btn.secondary{
+    background:rgba(255,255,255,0.04);color:var(--text);
+    border:1px solid rgba(255,255,255,0.12);
+  }
+  .action-btn:hover{opacity:.85;transform:translateY(-1px)}
+
+  /* ERROR */
+  .error-box{
+    background:rgba(255,32,80,0.08);border:1px solid rgba(255,32,80,0.3);
+    border-radius:12px;padding:16px 20px;margin-bottom:16px;
+    color:#ff6b9d;font-size:13px;display:none;animation:slideUp .3s ease;
+  }
+  .error-box.show{display:block}
+
+  /* HISTORY */
+  .hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .hist-item{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:14px;overflow:hidden;cursor:pointer;
+    transition:border-color .2s,transform .2s;
+  }
+  .hist-item:hover{border-color:rgba(99,32,255,0.4);transform:translateY(-2px)}
+  .hist-thumb{height:110px;display:flex;align-items:center;justify-content:center;position:relative}
+  .hist-play{font-size:28px;filter:drop-shadow(0 0 10px rgba(0,212,255,0.8))}
+  .hist-info{padding:10px 12px}
+  .hist-prompt{font-size:11px;color:rgba(255,255,255,0.65);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hist-tags{display:flex;gap:5px;flex-wrap:wrap}
+  .hist-tag{font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(99,32,255,0.15);color:#a78bfa;border:1px solid rgba(99,32,255,0.3)}
+  .empty-hist{text-align:center;padding:80px 20px;color:var(--muted)}
+  .empty-icon{font-size:44px;margin-bottom:14px}
+
+  /* VIDEO MODAL */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;
+    display:none;align-items:center;justify-content:center;padding:20px;
+    backdrop-filter:blur(10px);
+  }
+  .modal-overlay.show{display:flex}
+  .modal-box{
+    background:#0a0a14;border:1px solid rgba(99,32,255,0.4);
+    border-radius:18px;padding:24px;max-width:700px;width:100%;
+    animation:slideUp .3s ease;
+  }
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .modal-title{font-size:16px;font-weight:700;color:#a78bfa}
+  .modal-close{
+    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+    color:var(--muted);width:32px;height:32px;border-radius:8px;
+    cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+    transition:all .2s;
+  }
+  .modal-close:hover{background:rgba(255,32,80,0.2);color:var(--pink);border-color:rgba(255,32,80,0.4)}
+
+  /* API STATUS */
+  .api-status{
+    display:flex;align-items:center;gap:8px;font-size:11px;
+    padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.02);
+  }
+  .status-dot{width:7px;height:7px;border-radius:50%}
+  .status-dot.online{background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.6);animation:pulse 2s infinite}
+  .status-dot.offline{background:#ef4444}
+
+  @media(max-width:600px){
+    nav{padding:12px 16px}
+    .hero{padding:40px 16px 28px}
+    main{padding:0 14px 60px}
+    .two-col{grid-template-columns:1fr}
+    .card{padding:18px}
+  }
+
+  /* Panel hidden */
+  [data-tab]{display:none}
+  [data-tab].active{display:block}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+<div id="particles"></div>
+
+<div class="content">
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    <div>
+      <div class="logo-name" id="logoName">VISIONAI STUDIO</div>
+      <div class="logo-sub" id="logoSub">منصة توليد الفيديو بالذكاء الاصطناعي</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div class="api-status">
+      <div class="status-dot online" id="statusDot"></div>
+      <span id="statusText">API متصل</span>
+    </div>
+    <div class="lang-bar" id="langBar"></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">
+    <span class="spinning">◈</span>
+    <span id="heroBadge">AI VIDEO GENERATOR</span>
+  </div>
+  <div class="hero-title" id="heroTitle">أنشئ فيديوهات خرافية</div>
+  <div class="hero-sub" id="heroSub">بدون علامة مائية • حتى 15 دقيقة • جودة سينمائية</div>
+  <div class="feat-badges" id="featBadges"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('create')" id="tabCreate">✦ إنشاء</button>
+  <button class="tab-btn" onclick="switchTab('history')" id="tabHistory">◈ السجل</button>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- CREATE TAB -->
+  <div data-tab="create" class="active">
+
+    <!-- PROGRESS -->
+    <div class="progress-card" id="progressCard">
+      <div style="font-size:12px;color:#a78bfa;letter-spacing:.1em;margin-bottom:6px" id="progressLabel">معالجة الذكاء الاصطناعي</div>
+      <div class="progress-pct" id="progressPct">0%</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-step" id="progressStep">جارٍ التحليل...</div>
+      <div class="step-dots" id="stepDots"></div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-box" id="errorBox">⚠ <span id="errorMsg"></span></div>
+
+    <!-- RESULT -->
+    <div class="result-card" id="resultCard">
+      <div class="result-label">✦ <span id="resultTitle">الفيديو جاهز!</span></div>
+      <div class="result-msg" id="resultMsg">تم توليد فيديو بجودة سينمائية بدون علامة مائية</div>
+      <div class="video-preview" id="videoPreview" onclick="openModal()">
+        <div class="video-bg" id="videoBg">
+          <div class="scan-line"></div>
+          <div class="play-icon">▶</div>
+          <div class="video-tag tl">◈ NO WATERMARK</div>
+          <div class="video-tag br" id="videoMeta">4K • 15 دقيقة</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="action-btn primary" id="downloadBtn" onclick="downloadVideo()">⬇ <span id="dlLabel">تحميل</span></button>
+        <button class="action-btn secondary" onclick="shareVideo()">⟁ <span id="shareLabel">مشاركة</span></button>
+        <button class="action-btn secondary" onclick="doGenerate()">↺ <span id="regenLabel">إعادة</span></button>
+      </div>
+    </div>
+
+    <!-- PROMPT -->
+    <div class="card">
+      <span class="card-label" id="promptLabel">◈ وصف الفيديو</span>
+      <textarea id="promptInput" rows="5" placeholder="اكتب وصف الفيديو..."></textarea>
+    </div>
+
+    <!-- STYLES -->
+    <div class="card">
+      <span class="card-label" id="styleLabel">✦ أسلوب الفيديو</span>
+      <div class="opt-grid-sm" id="styleGrid"></div>
+    </div>
+
+    <!-- DURATION -->
+    <div class="card">
+      <span class="card-label" id="durationLabel">⟁ مدة الفيديو</span>
+      <div class="opt-grid" id="durationGrid"></div>
+    </div>
+
+    <!-- RESOLUTION + RATIO -->
+    <div class="card">
+      <div class="two-col">
+        <div>
+          <span class="card-label" id="resLabel">◆ الدقة</span>
+          <div class="col-opts" id="resGrid"></div>
+        </div>
+        <div>
+          <span class="card-label" id="ratioLabel">◉ النسبة</span>
+          <div class="col-opts" id="ratioGrid"></div>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <span class="card-label" id="fpsLabel">◈ معدل الإطارات</span>
+        <div class="opt-grid" id="fpsGrid"></div>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="card">
+      <div class="adv-toggle" onclick="toggleAdv()">
+        <span class="card-label" style="margin:0" id="advLabel">⬡ إعدادات متقدمة</span>
+        <span id="advArrow" style="color:var(--muted);font-size:16px">▼</span>
+      </div>
+      <div class="adv-body" id="advBody">
+        <div style="margin-bottom:16px">
+          <div class="section-sub" id="camLabel">حركة الكاميرا</div>
+          <div class="opt-grid-sm" id="camGrid"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="section-sub" id="lightLabel">الإضاءة</div>
+          <div class="opt-grid-sm" id="lightGrid"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="section-sub" id="colorLabel">درجة اللون</div>
+          <div class="opt-grid-sm" id="colorGrid"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="section-sub" id="motionLabel">شدة الحركة</div>
+          <div class="opt-grid" id="motionGrid"></div>
+        </div>
+        <div>
+          <div class="section-sub" id="negLabel">استبعاد</div>
+          <textarea id="negInput" rows="2" placeholder="مثال: ضبابية، تشويه..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button class="gen-btn" id="genBtn" onclick="doGenerate()">
+      <span>✦</span>
+      <span id="genBtnLabel">توليد الفيديو</span>
+      <span>✦</span>
+    </button>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div data-tab="history">
+    <div id="historyContent">
+      <div class="empty-hist">
+        <div class="empty-icon">◈</div>
+        <div id="emptyHistLabel">لم تُنشئ أي فيديو بعد</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">معاينة الفيديو</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalVideoWrap" style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin-bottom:16px"></div>
+    <div class="action-row">
+      <button class="action-btn primary" onclick="downloadVideo()">⬇ <span id="modalDl">تحميل</span></button>
+      <button class="action-btn secondary" onclick="closeModal()">✕ <span id="modalClose">إغلاق</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================================
+// TRANSLATIONS
+// ========================================
+const T = {
+  ar:{dir:"rtl",styles:["سينمائي","واقعي","رسوم متحركة","فن رقمي","خيال علمي","طبيعة","فانتازيا","مجرد"],
+    durations:["30 ثانية","1 دقيقة","2 دقيقة","5 دقائق","10 دقائق","15 دقيقة"],
+    resolutions:["720p HD","1080p Full HD","2K QHD","4K Ultra HD"],
+    ratios:["16:9","9:16","1:1","4:3","21:9"],
+    fps:["24 fps","30 fps","60 fps","120 fps"],
+    cameras:["ثابتة","تتبع بطيء","دوران","تقريب","ابتعاد","طيران"],
+    lightings:["طبيعية","سينمائية","درامية","ناعمة","نيون","غروب"],
+    colors:["طبيعي","سينمائي","دافئ","بارد","فيلم قديم","أبيض وأسود"],
+    motions:["منخفض","متوسط","عالي","ديناميكي"],
+    feats:["بدون علامة مائية","حتى 15 دقيقة","4K Ultra HD","60+ نمط","صوت AI","تعديل"],
+    steps:["تحليل الوصف...","بناء المشاهد...","تطبيق الأسلوب...","معالجة الحركة...","تحسين الجودة...","إنهاء الفيديو..."],
+    promptPH:"اكتب وصف الفيديو...",negPH:"مثال: ضبابية، تشويه...",
+    genBtn:"توليد الفيديو",genBtnLoad:"جارٍ التوليد...",
+    dl:"تحميل",share:"مشاركة",regen:"إعادة التوليد",
+    readyTitle:"الفيديو جاهز!",readyMsg:"تم التوليد بدون علامة مائية",
+    apiOn:"API متصل",apiOff:"API غير متصل",
+    tabCreate:"✦ إنشاء",tabHistory:"◈ السجل",
+    emptyHist:"لم تُنشئ أي فيديو بعد",
+    heroTitle:"أنشئ فيديوهات خرافية",heroSub:"بدون علامة مائية • حتى 15 دقيقة • جودة سينمائية",
+    promptLbl:"◈ وصف الفيديو",styleLbl:"✦ أسلوب الفيديو",
+    durLbl:"⟁ مدة الفيديو",resLbl:"◆ الدقة",ratioLbl:"◉ النسبة",
+    fpsLbl:"◈ معدل الإطارات",advLbl:"⬡ إعدادات متقدمة",
+    camLbl:"حركة الكاميرا",lightLbl:"الإضاءة",colorLbl:"درجة اللون",
+    motionLbl:"شدة الحركة",negLbl:"استبعاد",
+    progressLbl:"معالجة الذكاء الاصطناعي",
+    logoSub:"منصة توليد الفيديو بالذكاء الاصطناعي",
+    modalTitle:"معاينة الفيديو",modalClose:"إغلاق",modalDl:"تحميل",
+    errNoPrompt:"من فضلك اكتب وصفاً للفيديو",errApi:"حدث خطأ في الاتصال بـ API. تأكد من صحة المفتاح.",
+  },
+  en:{dir:"ltr",styles:["Cinematic","Realistic","Animated","Digital Art","Sci-Fi","Nature","Fantasy","Abstract"],
+    durations:["30 seconds","1 minute","2 minutes","5 minutes","10 minutes","15 minutes"],
+    resolutions:["720p HD","1080p Full HD","2K QHD","4K Ultra HD"],
+    ratios:["16:9","9:16","1:1","4:3","21:9"],
+    fps:["24 fps","30 fps","60 fps","120 fps"],
+    cameras:["Static","Slow Pan","Rotation","Zoom In","Zoom Out","Fly Through"],
+    lightings:["Natural","Cinematic","Dramatic","Soft","Neon","Golden Hour"],
+    colors:["Natural","Cinematic","Warm","Cool","Film Grain","Black & White"],
+    motions:["Low","Medium","High","Dynamic"],
+    feats:["No Watermark","Up to 15 Min","4K Ultra HD","60+ Styles","AI Audio","Edit Tracks"],
+    steps:["Analyzing prompt...","Building scenes...","Applying style...","Processing motion...","Enhancing quality...","Finalizing video..."],
+    promptPH:"Describe your video...",negPH:"e.g. blurry, distorted...",
+    genBtn:"Generate Video",genBtnLoad:"Generating...",
+    dl:"Download",share:"Share",regen:"Regenerate",
+    readyTitle:"Video Ready!",readyMsg:"Generated with no watermark",
+    apiOn:"API Connected",apiOff:"API Offline",
+    tabCreate:"✦ Create",tabHistory:"◈ History",
+    emptyHist:"No videos generated yet",
+    heroTitle:"Create Extraordinary Videos",heroSub:"No Watermark • Up to 15 Minutes • Cinematic Quality",
+    promptLbl:"◈ Video Description",styleLbl:"✦ Video Style",
+    durLbl:"⟁ Duration",resLbl:"◆ Resolution",ratioLbl:"◉ Aspect Ratio",
+    fpsLbl:"◈ Frame Rate",advLbl:"⬡ Advanced Settings",
+    camLbl:"Camera Movement",lightLbl:"Lighting",colorLbl:"Color Grade",
+    motionLbl:"Motion Intensity",negLbl:"Negative Prompt",
+    progressLbl:"AI Processing",
+    logoSub:"AI-Powered Video Generation Platform",
+    modalTitle:"Video Preview",modalClose:"Close",modalDl:"Download",
+    errNoPrompt:"Please write a video description",errApi:"API connection error. Check your API key.",
+  },
+  fr:{dir:"ltr",styles:["Cinématique","Réaliste","Animé","Art Digital","Sci-Fi","Nature","Fantaisie","Abstrait"],
+    durations:["30 secondes","1 minute","2 minutes","5 minutes","10 minutes","15 minutes"],
+    resolutions:["720p HD","1080p Full HD","2K QHD","4K Ultra HD"],
+    ratios:["16:9","9:16","1:1","4:3","21:9"],
+    fps:["24 fps","30 fps","60 fps","120 fps"],
+    cameras:["Statique","Panoramique","Rotation","Zoom avant","Zoom arrière","Vol"],
+    lightings:["Naturel","Cinéma","Dramatique","Doux","Néon","Heure dorée"],
+    colors:["Naturel","Cinéma","Chaud","Froid","Grain film","Noir/Blanc"],
+    motions:["Faible","Moyen","Élevé","Dynamique"],
+    feats:["Sans filigrane","Jusqu'à 15 min","4K Ultra HD","60+ styles","Audio IA","Édition"],
+    steps:["Analyse...","Construction...","Style...","Mouvement...","Amélioration...","Finalisation..."],
+    promptPH:"Décrivez votre vidéo...",negPH:"ex: flou, déformé...",
+    genBtn:"Générer",genBtnLoad:"Génération...",
+    dl:"Télécharger",share:"Partager",regen:"Régénérer",
+    readyTitle:"Vidéo Prête!",readyMsg:"Générée sans filigrane",
+    apiOn:"API Connectée",apiOff:"API Hors ligne",
+    tabCreate:"✦ Créer",tabHistory:"◈ Historique",
+    emptyHist:"Aucune vidéo générée",
+    heroTitle:"Créez des Vidéos Extraordinaires",heroSub:"Sans filigrane • Jusqu'à 15 minutes • Qualité ciné",
+    promptLbl:"◈ Description",styleLbl:"✦ Style",
+    durLbl:"⟁ Durée",resLbl:"◆ Résolution",ratioLbl:"◉ Format",
+    fpsLbl:"◈ FPS",advLbl:"⬡ Avancé",
+    camLbl:"Caméra",lightLbl:"Éclairage",colorLbl:"Étalonnage",
+    motionLbl:"Mouvement",negLbl:"Négatif",
+    progressLbl:"Traitement IA",
+    logoSub:"Plateforme IA de génération vidéo",
+    modalTitle:"Aperçu",modalClose:"Fermer",modalDl:"Télécharger",
+    errNoPrompt:"Veuillez écrire une description",errApi:"Erreur API. Vérifiez votre clé.",
+  },
+  es:{dir:"ltr",styles:["Cinemático","Realista","Animado","Arte Digital","Sci-Fi","Naturaleza","Fantasía","Abstracto"],
+    durations:["30 segundos","1 minuto","2 minutos","5 minutos","10 minutos","15 minutos"],
+    resolutions:["720p HD","1080p Full HD","2K QHD","4K Ultra HD"],
+    ratios:["16:9","9:16","1:1","4:3","21:9"],
+    fps:["24 fps","30 fps","60 fps","120 fps"],
+    cameras:["Estático","Paneo","Rotación","Acercar","Alejar","Vuelo"],
+    lightings:["Natural","Cinemático","Dramático","Suave","Neón","Hora dorada"],
+    colors:["Natural","Cinemático","Cálido","Frío","Grano","Blanco/Negro"],
+    motions:["Bajo","Medio","Alto","Dinámico"],
+    feats:["Sin marca de agua","Hasta 15 min","4K Ultra HD","60+ estilos","Audio IA","Edición"],
+    steps:["Analizando...","Construyendo...","Aplicando...","Movimiento...","Mejorando...","Finalizando..."],
+    promptPH:"Describe tu video...",negPH:"ej: borroso...",
+    genBtn:"Generar",genBtnLoad:"Generando...",
+    dl:"Descargar",share:"Compartir",regen:"Regenerar",
+    readyTitle:"¡Video Listo!",readyMsg:"Generado sin marca de agua",
+    apiOn:"API Conectada",apiOff:"API Desconectada",
+    tabCreate:"✦ Crear",tabHistory:"◈ Historial",
+    emptyHist:"No hay videos generados",
+    heroTitle:"Crea Videos Extraordinarios",heroSub:"Sin marca de agua • Hasta 15 minutos • Calidad cinemática",
+    promptLbl:"◈ Descripción",styleLbl:"✦ Estilo",
+    durLbl:"⟁ Duración",resLbl:"◆ Resolución",ratioLbl:"◉ Relación",
+    fpsLbl:"◈ FPS",advLbl:"⬡ Avanzado",
+    camLbl:"Cámara",lightLbl:"Iluminación",colorLbl:"Color",
+    motionLbl:"Movimiento",negLbl:"Negativo",
+    progressLbl:"Procesando IA",
+    logoSub:"Plataforma de generación de video con IA",
+    modalTitle:"Vista previa",modalClose:"Cerrar",modalDl:"Descargar",
+    errNoPrompt:"Por favor escribe una descripción",errApi:"Error de API. Verifica tu clave.",
+  },
+  zh:{dir:"ltr",styles:["电影感","写实","动画","数字艺术","科幻","自然","奇幻","抽象"],
+    durations:["30秒","1分钟","2分钟","5分钟","10分钟","15分钟"],
+    resolutions:["720p HD","1080p全高清","2K QHD","4K超高清"],
+    ratios:["16:9","9:16","1:1","4:3","21:9"],
+    fps:["24 fps","30 fps","60 fps","120 fps"],
+    cameras:["静止","慢速平移","旋转","推进","拉出","飞越"],
+    lightings:["自然","电影","戏剧","柔和","霓虹","黄金时刻"],
+    colors:["自然","电影","暖调","冷调","胶片","黑白"],
+    motions:["低","中","高","动态"],
+    feats:["无水印","最长15分钟","4K超高清","60+风格","AI音频","编辑"],
+    steps:["分析提示...","构建场景...","应用风格...","处理运动...","提升质量...","完成视频..."],
+    promptPH:"描述您的视频...",negPH:"例如：模糊、变形...",
+    genBtn:"生成视频",genBtnLoad:"生成中...",
+    dl:"下载",share:"分享",regen:"重新生成",
+    readyTitle:"视频完成！",readyMsg:"已生成无水印视频",
+    apiOn:"API 已连接",apiOff:"API 离线",
+    tabCreate:"✦ 创建",tabHistory:"◈ 历史",
+    emptyHist:"暂无生成视频",
+    heroTitle:"创造非凡视频",heroSub:"无水印 • 最长15分钟 • 电影级质量",
+    promptLbl:"◈ 视频描述",styleLbl:"✦ 视频风格",
+    durLbl:"⟁ 时长",resLbl:"◆ 分辨率",ratioLbl:"◉ 宽高比",
+    fpsLbl:"◈ 帧率",advLbl:"⬡ 高级设置",
+    camLbl:"摄像机运动",lightLbl:"光照",colorLbl:"色调",
+    motionLbl:"运动强度",negLbl:"负面提示",
+    progressLbl:"AI 处理中",
+    logoSub:"AI驱动的视频生成平台",
+    modalTitle:"视频预览",modalClose:"关闭",modalDl:"下载",
+    errNoPrompt:"请输入视频描述",errApi:"API 连接错误，请检查密钥。",
+  }
+};
+
+// ========================================
+// STATE
+// ========================================
+let lang = "ar";
+let selStyle = 0, selDur = 5, selRes = 3, selRatio = 0, selFPS = 1;
+let selCam = 0, selLight = 1, selColor = 1, selMotion = 1;
+let isGenerating = false;
+let videoHistory = [];
+let currentVideoUrl = null;
+let progressInterval = null;
+
+const GRADIENTS = [
+  "linear-gradient(135deg,#0f0c29,#302b63,#24243e)",
+  "linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)",
+  "linear-gradient(135deg,#2d1b69,#11998e,#38ef7d)",
+  "linear-gradient(135deg,#4e0000,#800000,#ff6b6b)",
+  "linear-gradient(135deg,#000000,#434343)",
+  "linear-gradient(135deg,#005c97,#363795)",
+  "linear-gradient(135deg,#1d0035,#7b2d8b,#ff6b9d)",
+];
+
+// ========================================
+// INIT
+// ========================================
+function init(){
+  buildParticles();
+  buildLangBar();
+  applyLang();
+  checkApiStatus();
+}
+
+function buildParticles(){
+  const c = document.getElementById("particles");
+  for(let i=0;i<28;i++){
+    const d = document.createElement("div");
+    d.className = "particle";
+    const colors = ["#6320ff","#00d4ff","#ff2080"];
+    d.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;background:${colors[i%3]};--dur:${Math.random()*8+4}s;--delay:${Math.random()*4}s`;
+    c.appendChild(d);
+  }
+}
+
+function buildLangBar(){
+  const labels = {ar:"العربية",en:"English",fr:"Français",es:"Español",zh:"中文"};
+  const bar = document.getElementById("langBar");
+  bar.innerHTML = Object.entries(labels).map(([code,name])=>
+    `<button class="lang-btn ${code===lang?'active':''}" onclick="setLang('${code}')">${name}</button>`
+  ).join("");
+}
+
+function setLang(code){
+  lang = code;
+  buildLangBar();
+  applyLang();
+}
+
+function applyLang(){
+  const t = T[lang];
+  document.documentElement.dir = t.dir;
+  document.documentElement.lang = lang;
+
+  setText("heroTitle", t.heroTitle);
+  setText("heroSub", t.heroSub);
+  setText("logoSub", t.logoSub);
+  setText("progressLabel", t.progressLbl);
+  setText("resultTitle", t.readyTitle);
+  setText("resultMsg", t.readyMsg);
+  setText("promptLabel", t.promptLbl);
+  setText("styleLabel", t.styleLbl);
+  setText("durationLabel", t.durLbl);
+  setText("resLabel", t.resLbl);
+  setText("ratioLabel", t.ratioLbl);
+  setText("fpsLabel", t.fpsLbl);
+  setText("advLabel", t.advLbl);
+  setText("camLabel", t.camLbl);
+  setText("lightLabel", t.lightLbl);
+  setText("colorLabel", t.colorLbl);
+  setText("motionLabel", t.motionLbl);
+  setText("negLabel", t.negLbl);
+  setText("genBtnLabel", t.genBtn);
+  setText("dlLabel", t.dl);
+  setText("shareLabel", t.share);
+  setText("regenLabel", t.regen);
+  setText("tabCreate", t.tabCreate);
+  setText("tabHistory", t.tabHistory);
+  setText("emptyHistLabel", t.emptyHist);
+  setText("statusText", t.apiOn);
+  setText("modalTitle", t.modalTitle);
+  setText("modalClose", t.modalClose);
+  setText("modalDl", t.modalDl);
+
+  setAttr("promptInput","placeholder",t.promptPH);
+  setAttr("negInput","placeholder",t.negPH);
+
+  buildGrid("styleGrid", t.styles, ()=>selStyle, i=>selStyle=i);
+  buildGrid("durationGrid", t.durations, ()=>selDur, i=>selDur=i, "opt-grid");
+  buildGrid("resGrid", t.resolutions, ()=>selRes, i=>selRes=i, "col-opts");
+  buildGrid("ratioGrid", t.ratios, ()=>selRatio, i=>selRatio=i, "col-opts");
+  buildGrid("fpsGrid", t.fps, ()=>selFPS, i=>selFPS=i, "opt-grid");
+  buildGrid("camGrid", t.cameras, ()=>selCam, i=>selCam=i);
+  buildGrid("lightGrid", t.lightings, ()=>selLight, i=>selLight=i);
+  buildGrid("colorGrid", t.colors, ()=>selColor, i=>selColor=i);
+  buildGrid("motionGrid", t.motions, ()=>selMotion, i=>selMotion=i, "opt-grid");
+
+  buildFeatBadges(t.feats);
+  updateStepDots(0, t.steps.length);
+}
+
+function buildGrid(id, items, getActive, setActive){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = items.map((item,i)=>
+    `<button class="opt-btn ${getActive()===i?'active':''}" onclick="selectOpt('${id}',${i})">${item}</button>`
+  ).join("");
+}
+
+function selectOpt(gridId, idx){
+  const setters = {
+    styleGrid: i=>selStyle=i,
+    durationGrid: i=>selDur=i,
+    resGrid: i=>selRes=i,
+    ratioGrid: i=>selRatio=i,
+    fpsGrid: i=>selFPS=i,
+    camGrid: i=>selCam=i,
+    lightGrid: i=>selLight=i,
+    colorGrid: i=>selColor=i,
+    motionGrid: i=>selMotion=i,
+  };
+  setters[gridId](idx);
+  const el = document.getElementById(gridId);
+  el.querySelectorAll(".opt-btn").forEach((b,i)=>b.classList.toggle("active",i===idx));
+}
+
+function buildFeatBadges(feats){
+  const icons = ["✦","◈","⬡","◉","⟁","◆"];
+  document.getElementById("featBadges").innerHTML = feats.map((f,i)=>
+    `<div class="feat-badge"><span>${icons[i]||"•"}</span>${f}</div>`
+  ).join("");
+}
+
+function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+function setAttr(id, attr, val){ const el=document.getElementById(id); if(el) el[attr]=val; }
+
+// ========================================
+// TABS
+// ========================================
+function switchTab(tab){
+  document.querySelectorAll("[data-tab]").forEach(el=>el.classList.remove("active"));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add("active");
+  if(tab==="history") renderHistory();
+}
+
+// ========================================
+// ADVANCED
+// ========================================
+let advOpen = false;
+function toggleAdv(){
+  advOpen = !advOpen;
+  document.getElementById("advBody").classList.toggle("open", advOpen);
+  document.getElementById("advArrow").textContent = advOpen ? "▲" : "▼";
+}
+
+// ========================================
+// GENERATE
+// ========================================
+async function doGenerate(){
+  const prompt = document.getElementById("promptInput").value.trim();
+  const t = T[lang];
+
+  hideEl("errorBox");
+  hideEl("resultCard");
+
+  if(!prompt){
+    showError(t.errNoPrompt);
+    return;
+  }
+
+  if(isGenerating) return;
+  isGenerating = true;
+
+  const genBtn = document.getElementById("genBtn");
+  genBtn.disabled = true;
+  setText("genBtnLabel", t.genBtnLoad);
+
+  showEl("progressCard");
+  animateProgress(t.steps);
+
+  try {
+    // Call our Worker API
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        prompt,
+        negative: document.getElementById("negInput").value,
+        style: t.styles[selStyle],
+        duration: t.durations[selDur],
+        resolution: t.resolutions[selRes],
+        aspect_ratio: T.en.ratios[selRatio],
+        fps: T.en.fps[selFPS],
+        camera: T.en.cameras[selCam],
+        lighting: T.en.lightings[selLight],
+        color_grade: T.en.colors[selColor],
+        motion: T.en.motions[selMotion],
+        language: lang
+      })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok) throw new Error(data.error || "API Error");
+
+    finishGenerate(data, prompt, t);
+
+  } catch(err){
+    console.error(err);
+    hideEl("progressCard");
+    showError(t.errApi + (err.message ? ` (${err.message})` : ""));
+    isGenerating = false;
+    genBtn.disabled = false;
+    setText("genBtnLabel", t.genBtn);
+    if(progressInterval) clearInterval(progressInterval);
+  }
+}
+
+function animateProgress(steps){
+  let step = 0;
+  const total = steps.length;
+  updateStepDots(0, total);
+
+  progressInterval = setInterval(()=>{
+    if(step >= total){ clearInterval(progressInterval); return; }
+    const pct = Math.round(((step+1)/total)*100);
+    document.getElementById("progressPct").textContent = pct + "%";
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressStep").textContent = steps[step];
+    updateStepDots(step+1, total);
+    step++;
+  }, 1500);
+}
+
+function updateStepDots(done, total){
+  const el = document.getElementById("stepDots");
+  if(!el) return;
+  el.innerHTML = Array.from({length:total},(_,i)=>
+    `<div class="step-dot ${i<done?'done':''}"></div>`
+  ).join("");
+}
+
+function finishGenerate(data, prompt, t){
+  if(progressInterval) clearInterval(progressInterval);
+  document.getElementById("progressPct").textContent = "100%";
+  document.getElementById("progressFill").style.width = "100%";
+
+  setTimeout(()=>{
+    hideEl("progressCard");
+
+    // Show result
+    currentVideoUrl = data.video_url || null;
+    const grad = GRADIENTS[Math.floor(Math.random()*GRADIENTS.length)];
+
+    document.getElementById("videoBg").style.background = grad;
+    setText("videoMeta", `${T.en.resolutions[selRes]} • ${T.en.durations[selDur]}`);
+
+    if(data.thumbnail_url){
+      document.getElementById("videoBg").style.backgroundImage = `url('${data.thumbnail_url}')`;
+      document.getElementById("videoBg").style.backgroundSize = "cover";
+    }
+
+    showEl("resultCard");
+
+    // Save to history
+    videoHistory.unshift({
+      id: Date.now(),
+      prompt: prompt.substring(0,50) + (prompt.length>50?"...":""),
+      style: t.styles[selStyle],
+      duration: t.durations[selDur],
+      resolution: t.resolutions[selRes],
+      video_url: currentVideoUrl,
+      grad,
+    });
+    if(videoHistory.length > 20) videoHistory.pop();
+
+    isGenerating = false;
+    const genBtn = document.getElementById("genBtn");
+    genBtn.disabled = false;
+    setText("genBtnLabel", t.genBtn);
+
+    // Scroll to result
+    document.getElementById("resultCard").scrollIntoView({behavior:"smooth",block:"center"});
+
+  }, 800);
+}
+
+// ========================================
+// DOWNLOAD & SHARE
+// ========================================
+function downloadVideo(){
+  if(currentVideoUrl){
+    const a = document.createElement("a");
+    a.href = currentVideoUrl;
+    a.download = "visionai-video.mp4";
+    a.click();
+  } else {
+    alert(lang==="ar" ? "الفيديو غير متاح للتحميل بعد" : "Video not available for download yet");
+  }
+}
+
+function shareVideo(){
+  if(navigator.share && currentVideoUrl){
+    navigator.share({title:"VisionAI Studio", url: currentVideoUrl});
+  } else if(currentVideoUrl){
+    navigator.clipboard?.writeText(currentVideoUrl);
+    alert(lang==="ar" ? "تم نسخ الرابط!" : "Link copied!");
+  }
+}
+
+// ========================================
+// MODAL
+// ========================================
+function openModal(){
+  const wrap = document.getElementById("modalVideoWrap");
+  if(currentVideoUrl){
+    wrap.innerHTML = `<video src="${currentVideoUrl}" controls autoplay style="width:100%;height:100%;border-radius:12px;"></video>`;
+  } else {
+    const bg = document.getElementById("videoBg").style.background;
+    wrap.innerHTML = `<div style="width:100%;height:100%;background:${bg};border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px">▶</div>`;
+  }
+  showEl("modalOverlay");
+}
+function closeModal(){
+  hideEl("modalOverlay");
+  document.getElementById("modalVideoWrap").innerHTML="";
+}
+function closeModalOutside(e){ if(e.target===document.getElementById("modalOverlay")) closeModal(); }
+
+// ========================================
+// HISTORY
+// ========================================
+function renderHistory(){
+  const el = document.getElementById("historyContent");
+  const t = T[lang];
+  if(!videoHistory.length){
+    el.innerHTML = `<div class="empty-hist"><div class="empty-icon">◈</div><div>${t.emptyHist}</div></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="hist-grid">${videoHistory.map(item=>`
+    <div class="hist-item" onclick="previewHist('${item.video_url||""}','${item.grad}')">
+      <div class="hist-thumb" style="background:${item.grad}">
+        <div class="hist-play">▶</div>
+        <div class="video-tag tl" style="font-size:9px">NO WM</div>
+      </div>
+      <div class="hist-info">
+        <div class="hist-prompt">${item.prompt}</div>
+        <div class="hist-tags">
+          <span class="hist-tag">${item.style}</span>
+          <span class="hist-tag">${item.duration}</span>
+          <span class="hist-tag">${item.resolution}</span>
+        </div>
+      </div>
+    </div>
+  `).join("")}</div>`;
+}
+
+function previewHist(url, grad){
+  currentVideoUrl = url || null;
+  document.getElementById("videoBg").style.background = grad;
+  openModal();
+}
+
+// ========================================
+// API STATUS CHECK
+// ========================================
+async function checkApiStatus(){
+  try {
+    const r = await fetch("/api/health");
+    const ok = r.ok;
+    document.getElementById("statusDot").className = "status-dot " + (ok?"online":"offline");
+    setText("statusText", T[lang][ok?"apiOn":"apiOff"]);
+  } catch {
+    document.getElementById("statusDot").className = "status-dot offline";
+    setText("statusText", T[lang].apiOff);
+  }
+}
+
+// ========================================
+// HELPERS
+// ========================================
+function showEl(id){ document.getElementById(id).classList.add("show"); }
+function hideEl(id){ document.getElementById(id).classList.remove("show"); }
+function showError(msg){ setText("errorMsg",msg); showEl("errorBox"); }
+
+// ========================================
+// START
+// ========================================
+init();
+</script>
+</body>
+</html>
