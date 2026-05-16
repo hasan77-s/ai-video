@@ -1,345 +1,186 @@
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SYNTHWAVE — AI Video Stüdyo</title>
+<title>VISIONS.AI — Video Stüdyo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-<style>
-  :root {
-    --bg: #050508;
-    --surface: #0d0d14;
-    --card: #111118;
-    --border: rgba(255,255,255,0.07);
-    --accent: #e040fb;
-    --accent2: #00e5ff;
-    --accent3: #ff6d00;
-    --text: #f0f0f8;
-    --muted: #6b6b80;
-    --success: #00e676;
-    --error: #ff1744;
-    --glow: 0 0 40px rgba(224,64,251,0.25);
-    --glow2: 0 0 40px rgba(0,229,255,0.2);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'Space Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(224,64,251,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(224,64,251,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.15; pointer-events: none; z-index: 0; animation: drift 12s ease-in-out infinite; }
-  .orb1 { width: 500px; height: 500px; background: var(--accent); top: -150px; left: -150px; animation-delay: 0s; }
-  .orb2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; right: -100px; animation-delay: -6s; }
-  .orb3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 50%; animation-delay: -3s; }
-  @keyframes drift {
-    0%, 100% { transform: translate(0,0) scale(1); }
-    33% { transform: translate(30px,-20px) scale(1.05); }
-    66% { transform: translate(-20px,30px) scale(0.95); }
-  }
-  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
-  header { padding: 40px 0 20px; text-align: center; }
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    letter-spacing: -2px;
-    line-height: 1;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 30px rgba(224,64,251,0.5));
-  }
-  .tagline { margin-top: 10px; color: var(--muted); font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; }
-  .model-tabs { display: flex; gap: 8px; justify-content: center; margin: 32px 0 24px; flex-wrap: wrap; }
-  .tab-btn {
-    padding: 10px 22px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--muted);
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-  }
-  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .tab-btn.active {
-    background: linear-gradient(135deg, rgba(224,64,251,0.15), rgba(0,229,255,0.1));
-    border-color: var(--accent);
-    color: var(--text);
-    box-shadow: var(--glow);
-  }
-  .main-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    backdrop-filter: blur(20px);
-  }
-  .field { margin-bottom: 20px; }
-  label { display: block; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  label span { color: var(--accent); }
-  input, textarea, select {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    padding: 12px 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-    -webkit-appearance: none;
-  }
-  input:focus, textarea:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(224,64,251,0.1);
-  }
-  textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-  select option { background: #111118; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .api-row { display: flex; gap: 10px; align-items: flex-start; }
-  .api-row input { flex: 1; }
-  .eye-btn {
-    padding: 12px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .eye-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .gen-btn {
-    width: 100%;
-    padding: 16px;
-    margin-top: 8px;
-    background: linear-gradient(135deg, var(--accent), #7c4dff);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-  .gen-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .gen-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(224,64,251,0.4); }
-  .gen-btn:hover::after { opacity: 1; }
-  .gen-btn:active { transform: translateY(0); }
-  .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-  #statusArea { margin-top: 24px; display: none; }
-  .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
-  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .progress-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent2); }
-  .progress-pct { font-size: 0.85rem; color: var(--muted); }
-  .progress-bar-bg { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 99px;
-    width: 0%;
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(0,229,255,0.5);
-  }
-  .progress-msg { margin-top: 12px; font-size: 0.75rem; color: var(--muted); }
-  .spinner {
-    display: inline-block;
-    width: 12px; height: 12px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent2);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .video-result {
-    background: var(--surface);
-    border: 1px solid rgba(0,230,118,0.2);
-    border-radius: 10px;
-    padding: 24px;
-    animation: fadeIn 0.5s ease;
-  }
-  @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-  .result-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--success); margin-bottom: 16px; }
-  .result-label::before { content: '✓ '; }
-  video { width: 100%; border-radius: 8px; background: #000; max-height: 400px; display: block; }
-  .dl-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 16px;
-    padding: 12px 24px;
-    background: transparent;
-    border: 1px solid var(--success);
-    border-radius: 8px;
-    color: var(--success);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-  .dl-btn:hover { background: rgba(0,230,118,0.1); }
-  .error-box {
-    background: rgba(255,23,68,0.08);
-    border: 1px solid rgba(255,23,68,0.3);
-    border-radius: 10px;
-    padding: 16px 20px;
-    color: #ff6b6b;
-    font-size: 0.8rem;
-    line-height: 1.6;
-  }
-  .error-box strong { color: var(--error); display: block; margin-bottom: 4px; font-size: 0.7rem; letter-spacing: 2px; }
-  .model-info {
-    display: none;
-    margin-top: 16px;
-    padding: 14px 18px;
-    background: rgba(0,229,255,0.05);
-    border: 1px solid rgba(0,229,255,0.15);
-    border-radius: 8px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-  .model-info a { color: var(--accent2); text-decoration: none; }
-  .model-info a:hover { text-decoration: underline; }
-  .model-info.visible { display: block; }
-  .history-section { margin-top: 40px; }
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.7rem;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-  .history-item {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: transform 0.2s, border-color 0.2s;
-    cursor: pointer;
-  }
-  .history-item:hover { transform: translateY(-3px); border-color: var(--accent); }
-  .history-item video { width: 100%; height: 120px; object-fit: cover; display: block; pointer-events: none; }
-  .history-item-info { padding: 10px 12px; }
-  .history-item-prompt { font-size: 0.7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .history-item-model { font-size: 0.65rem; color: var(--accent); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-  footer { text-align: center; padding: 40px 0; color: var(--muted); font-size: 0.7rem; letter-spacing: 1px; position: relative; z-index: 1; }
-  @media (max-width: 600px) {
-    .row { grid-template-columns: 1fr; }
-    .main-card { padding: 20px 16px; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
 
-<div class="container">
-  <header>
-    <div class="logo">SYNTHWAVE</div>
-    <p class="tagline">Yapay Zeka ile Video Üretim Stüdyosu</p>
-  </header>
-
-  <div class="model-tabs">
-    <button class="tab-btn active" onclick="selectModel('runway', this)">⚡ Runway Gen-3</button>
-    <button class="tab-btn" onclick="selectModel('luma', this)">🌙 Luma Dream</button>
-    <button class="tab-btn" onclick="selectModel('kling', this)">🎬 Kling AI</button>
+<div class="topbar">
+  <div class="brand">VISIONS<span class="brand-dot">.</span>AI</div>
+  <div class="topbar-center">
+    <span class="topbar-tag">Luma Dream Machine</span>
   </div>
-
-  <div class="main-card">
-    <div class="field">
-      <label>Prompt <span>*</span></label>
-      <textarea id="prompt" placeholder="Örnek: Yüksek binaların arasında süzülen bir kuşun sinematik, 4K yavaş çekim görüntüsü, gün batımı ışığında altın renkler, photorealistic..."></textarea>
+  <div class="topbar-right">
+    <div class="credit-chip" id="creditChip">
+      <span class="dot dot-gray"></span>
+      <span id="creditText">API bağlı</span>
     </div>
-
-    <div class="field">
-      <label>API Anahtarı <span>*</span></label>
-      <div class="api-row">
-        <input type="password" id="apiKey" placeholder="sk-... veya api key buraya yapıştırın"/>
-        <button class="eye-btn" onclick="toggleKey()" title="Göster/Gizle">👁</button>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label>Video Süresi</label>
-        <select id="duration">
-          <option value="5">5 saniye</option>
-          <option value="10">10 saniye</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>En-Boy Oranı</label>
-        <select id="ratio">
-          <option value="1280:768">16:9 — Yatay</option>
-          <option value="768:1280">9:16 — Dikey</option>
-          <option value="1104:832">4:3</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="modelInfo" class="model-info visible">
-      <strong>Runway Gen-3 Turbo</strong> — API anahtarı için:
-      <a href="https://app.runwayml.com/settings/api-tokens" target="_blank">app.runwayml.com</a> → Settings → API Tokens
-    </div>
-
-    <button class="gen-btn" id="genBtn" onclick="generate()">▶ &nbsp; Video Üret</button>
-
-    <div id="statusArea"></div>
   </div>
-
-  <div class="history-section" id="historySection" style="display:none">
-    <div class="section-title">▸ Önceki Üretimler</div>
-    <div class="history-grid" id="historyGrid"></div>
-  </div>
-
-  <footer>SYNTHWAVE AI VIDEO STUDIO — Cloudflare Workers üzerinde çalışmaktadır</footer>
 </div>
 
-<script src="app.js"></script>
+<div class="layout">
+
+  <div class="panel panel-form">
+
+    <div class="api-box" id="apiBox">
+      <div class="api-box-head">
+        <span class="api-icon">🔑</span>
+        <span class="api-title">Luma API Anahtarı</span>
+        <span class="free-badge">ÜCRETSİZ</span>
+      </div>
+      <div class="api-input-row">
+        <input type="password" id="apiKey" placeholder="luma-xxxxxxxxxxxxxxxx"/>
+        <button class="icon-btn" onclick="toggleKey()">👁</button>
+        <a href="https://lumalabs.ai/dream-machine/api" target="_blank" class="link-btn">Al →</a>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Sahne Açıklaması</label>
+      <textarea id="prompt" rows="5" placeholder="Video promptu gir..."></textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label">En-Boy Oranı</label>
+      <div class="pill-row" id="ratioGroup">
+        <button class="pill active" data-val="16:9">16:9</button>
+        <button class="pill" data-val="9:16">9:16</button>
+        <button class="pill" data-val="1:1">1:1</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Klip Döngüsü</label>
+      <div class="pill-row" id="loopGroup">
+        <button class="pill active" data-val="false">Kapalı</button>
+        <button class="pill" data-val="true">Açık</button>
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="startGeneration()">
+      Video Üretimini Başlat
+    </button>
+
+  </div>
+
+  <div class="panel panel-status">
+
+    <div id="idleState" class="idle-state">
+      <div class="idle-title">Üretim bekleniyor</div>
+    </div>
+
+    <div id="progressState" style="display:none">
+      <div class="status-title">Video oluşturuluyor...</div>
+    </div>
+
+    <div id="resultState" style="display:none">
+      <div id="videoPlayer"></div>
+
+      <div class="result-actions">
+        <button class="act-btn act-primary" id="dlBtn">
+          ⬇ İndir
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API_URL = "https://ai-video-api.alyux.workers.dev/";
+
+document.querySelectorAll(".pill-row").forEach(group => {
+  const pills = group.querySelectorAll(".pill");
+
+  pills.forEach(btn => {
+    btn.addEventListener("click", () => {
+      pills.forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+});
+
+function toggleKey() {
+  const input = document.getElementById("apiKey");
+  input.type = input.type === "password" ? "text" : "password";
+}
+
+function getSelectedRatio() {
+  const active = document.querySelector("#ratioGroup .pill.active");
+  return active ? active.dataset.val : "16:9";
+}
+
+function getLoopValue() {
+  const active = document.querySelector("#loopGroup .pill.active");
+  return active ? active.dataset.val === "true" : false;
+}
+
+async function startGeneration() {
+  const apiKey = document.getElementById("apiKey").value.trim();
+  const prompt = document.getElementById("prompt").value.trim();
+
+  if (!apiKey || !prompt) {
+    alert("API anahtarı ve prompt gerekli");
+    return;
+  }
+
+  document.getElementById("idleState").style.display = "none";
+  document.getElementById("progressState").style.display = "block";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        apiKey,
+        prompt,
+        aspect_ratio: getSelectedRatio(),
+        loop: getLoopValue()
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.video_url) {
+      showResult(data.video_url);
+    } else {
+      console.log(data);
+      alert("Video üretilemedi");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("API bağlantı hatası");
+  }
+}
+
+function showResult(videoUrl) {
+  document.getElementById("progressState").style.display = "none";
+  document.getElementById("resultState").style.display = "block";
+
+  const player = document.getElementById("videoPlayer");
+
+  player.innerHTML = `
+    <video controls autoplay style="width:100%;border-radius:16px">
+      <source src="${videoUrl}" type="video/mp4">
+    </video>
+  `;
+
+  document.getElementById("dlBtn").onclick = () => {
+    window.open(videoUrl, "_blank");
+  };
+}
+</script>
+
 </body>
 </html>
+```
+
